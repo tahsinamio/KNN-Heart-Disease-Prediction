@@ -1,10 +1,6 @@
 import org.apache.log4j.{Level, Logger}
-import org.apache.spark.ml.Pipeline
-import org.apache.spark.ml.evaluation.BinaryClassificationEvaluator
-import org.apache.spark.ml.feature.VectorAssembler
 import org.apache.spark.sql.{Encoders, SparkSession}
 import org.apache.spark.{SparkConf, SparkContext}
-import org.apache.spark.mllib.clustering.{KMeans, KMeansModel}
 import org.apache.spark.mllib.linalg.Vectors
 
 import scala.io._
@@ -22,7 +18,7 @@ object KNN {
 
     // Load and parse the data
     val data = Source.fromFile("src/output/part-00000").getLines.toList
-    val parsedData = data.map(s => Vectors.dense(s.split(", ").map(_.toDouble)))
+    val parsedData = data.map(_.split(", ").map(_.toDouble))
 
     // Shuffle data
     val shuffledData = Random.shuffle(parsedData)
@@ -37,8 +33,8 @@ object KNN {
 
     // make k and test read-only and viewable to all the different rdds across dif machines
     // broadcast is supposed to be used for small things, hopefully this isn't too big
-    val k = 20 // temp value
-    val k_val = sc.broadcast()
+    val k = 21 // temp value
+    val k_val = sc.broadcast(k)
     val train_info = sc.broadcast(train)
 
     // distribute, at this point every computer has a chunk of data
@@ -46,13 +42,30 @@ object KNN {
 
     // compute all the distances in knn:
     // for entry in test_rdd, need to compute distance between entry to all vals in train_info
-    // maybe here return (entry, distance)
-    // compute set of samples N with k smallest distances for entry (sort by distance, take(k))
-    // return the majority label of samples in N
-    // maybe here return (entry, N)
-    // compare N and the actual classification and note if it's right or not
-    // collect/aggregate/etc to finally analyze and get all the info (f1, accuracy, etc)
+    val entryLblList = test_rdd.map(x => (x, train_info.value.map(y =>
+        (y, sqrt(pow(x(1)-y(1), 2) + pow(x(2)-y(2), 2) + pow(x(3)-y(3), 2) + pow(x(4)-y(4), 2)
+        + pow(x(5)-y(5), 2) + pow(x(6)-y(6), 2) + pow(x(7)-y(7), 2) + pow(x(8)-y(8), 2) + pow(x(9)-y(9), 2)
+        + pow(x(10)-y(10), 2) + pow(x(11)-y(11), 2) + pow(x(12)-y(12), 2) + pow(x(13)-y(13), 2)
+        + pow(x(14)-y(14), 2) + pow(x(15)-y(15), 2) + pow(x(16)-y(16), 2) + pow(x(17)-y(17), 2))))
+        .sortBy({case (entry, distance) => distance}).take(k_val.value).map(_._1(0))))
+    // entryLblList = (entry as list of doubles, list of labels)
+    // take max count label
+    val entryCountList = entryLblList.map({case (entry, labelList) => (entry, labelList.groupBy(identity).mapValues(_.size).maxBy(_._2))})
+    // get the actual label of entry and the predicted label
+    val rlLabelnewLabel = entryCountList.map({case (entry, countList) => (entry(0), countList._1)})
+    // get results
+    val results = rlLabelnewLabel.map({
+      case (0.0, 0.0) => "TN"
+      case (1.0, 1.0) => "TP"
+      case (1.0, 0.0) => "FN"
+      case (0.0, 1.0) => "FP"
+    }).foreach(println)
 
+    // map with totals
+    // WARNING DOES NOT WORK YET (OR IT TAKES A LONG TIME)
+    // get rid of the foreach(println) above before trying
+    //val analyse = results.groupBy(identity).mapValues(_.size).foreach(println)
     sc.stop()
+
   }
 }
