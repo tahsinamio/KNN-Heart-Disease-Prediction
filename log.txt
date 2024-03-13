@@ -4,6 +4,9 @@ Karen Huang:
  - Presentation, 30 minutes: slides for KNN, Results, part of Learning and Obstacles
 
 Krishnanshu Gupta:
+- Report: 1.5 hours - Fully wrote Introduction, Methodology, and Dataset, and Data Exploration sections.
+- Code: 3.5 hours - Wrote all the code in App.scala. I parsed and cleaned the full dataset, did all the visualizations and bar charts, and also saved the RDD output as files for use in KNN and Logistic Regression.
+- Presentation: 1 hour - Did all the slides for Motivation of Research, Dataset, Methodology, Data Parsing and Cleaning, and all 3 Data Exploration Slides. 
 
 Tahsin Amio:
 
