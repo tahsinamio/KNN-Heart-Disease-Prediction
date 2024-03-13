@@ -1,4 +1,7 @@
 Karen Huang:
+ - Report, 45 minutes: writing in Results and Discussion
+ - Code, 1.5 hours: base part of the KNN code (shuffling, broadcast, KNN distance, getting labels)
+ - Presentation, 30 minutes: slides for KNN, Results, part of Learning and Obstacles
 
 Krishnanshu Gupta:
 
