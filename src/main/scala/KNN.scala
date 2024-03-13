@@ -2,8 +2,8 @@ import org.apache.log4j.{Level, Logger}
 import org.apache.spark.{SparkConf, SparkContext}
 
 import scala.io._
-import scala.util.Random
 import scala.math._
+import scala.util.Random
 
 object KNN {
   def main(args: Array[String]): Unit = {
@@ -15,11 +15,13 @@ object KNN {
     val sc = new SparkContext(conf)
 
     // Load and parse the data
-    val data = Source.fromFile("src/output/part-00000").getLines.toList
-    val parsedData = data.map(_.split(", ").map(_.toDouble))
+    val filePaths = "src/output/part-00000,src/output/part-00001"
+    val rawData = sc.textFile(filePaths)
+    val parsedData = rawData.map(_.split(", ").map(_.toDouble))
 
     // Shuffle data
-    val shuffledData = Random.shuffle(parsedData)
+    val collectedData = parsedData.collect()
+    val shuffledData = Random.shuffle(collectedData.toList)
 
     // figure out index to split on
     val fraction = 0.7 // fraction of data to sample
@@ -29,7 +31,7 @@ object KNN {
     val test = shuffledData.take(split_idx)
     val train = shuffledData.drop(split_idx)
 
-    // make k and train read-only and viewable to all the different rdds across dif machines
+    // make k and test read-only and viewable to all the different rdds across dif machines
     // broadcast is supposed to be used for small things, hopefully this isn't too big
     val k = 21 // temp value
     val k_val = sc.broadcast(k)
@@ -53,15 +55,37 @@ object KNN {
     val rlLabelnewLabel = entryCountList.map({case (entry, countList) => (entry(0), countList._1)})
     // get results
     val results = rlLabelnewLabel.map({
-      case (0.0, 0.0) => ("TN", 1)
-      case (1.0, 1.0) => ("TP", 1)
-      case (1.0, 0.0) => ("FN", 1)
-      case (0.0, 1.0) => ("FP", 1)
+      case (0.0, 0.0) => "TN"
+      case (1.0, 1.0) => "TP"
+      case (1.0, 0.0) => "FN"
+      case (0.0, 1.0) => "FP"
     })
 
     // map with totals
-    // it takes a while but it works i think
-    val analyse = results.reduceByKey({ (x, y) => x + y}).collect().foreach(println)
+    // WARNING DOES NOT WORK YET (OR IT TAKES A LONG TIME)
+    // get rid of the foreach(println) above before trying
+    val counts = results.countByValue()
+
+    val analyze: Map[String, Int] = counts.map {
+      case (key, value) => (key, value.toInt)
+    }.toMap
+
+    // Extract the counts
+    val TP = analyze.getOrElse("TP", 0)
+    val TN = analyze.getOrElse("TN", 0)
+    val FP = analyze.getOrElse("FP", 0)
+    val FN = analyze.getOrElse("FN", 0)
+
+    // Calculation of precision, recall, and F1 score
+    val precision = if (TP + FP > 0) TP.toDouble / (TP + FP) else 0.0
+    val recall = if (TP + FN > 0) TP.toDouble / (TP + FN) else 0.0
+    val f1Score = if (precision + recall > 0) 2 * (precision * recall) / (precision + recall) else 0.0
+
+    // Output the results
+    println(s"Precision: $precision")
+    println(s"Recall: $recall")
+    println(s"F1 Score: $f1Score")
+
     sc.stop()
 
   }
