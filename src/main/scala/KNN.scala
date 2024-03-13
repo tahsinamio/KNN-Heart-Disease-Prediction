@@ -15,7 +15,7 @@ object KNN {
     val sc = new SparkContext(conf)
 
     // Load and parse the data
-    val filePaths = "src/output/part-00000,src/output/part-00001"
+    val filePaths = "src/output/part-00000, src/output/part-00001"
     val rawData = sc.textFile(filePaths)
     val parsedData = rawData.map(_.split(", ").map(_.toDouble))
 
@@ -76,17 +76,37 @@ object KNN {
     val FP = analyze.getOrElse("FP", 0)
     val FN = analyze.getOrElse("FN", 0)
 
-    // Calculation of precision, recall, and F1 score
+    // Calculation of various metrics
+    val accuracy = if (TP + TN + FP + FN > 0) (TP + TN).toDouble / (TP + TN + FP + FN) else 0.0
     val precision = if (TP + FP > 0) TP.toDouble / (TP + FP) else 0.0
     val recall = if (TP + FN > 0) TP.toDouble / (TP + FN) else 0.0
     val f1Score = if (precision + recall > 0) 2 * (precision * recall) / (precision + recall) else 0.0
+    val specificity = if (TN + FP > 0) TN.toDouble / (TN + FP) else 0.0
+    val negativePredictiveValue = if (TN + FN > 0) TN.toDouble / (TN + FN) else 0.0
+    val falsePositiveRate = if (FP + TN > 0) FP.toDouble / (FP + TN) else 0.0
+    val falseDiscoveryRate = if (TP + FP > 0) FP.toDouble / (TP + FP) else 0.0
+    val falseNegativeRate = if (TP + FN > 0) FN.toDouble / (TP + FN) else 0.0
+    val mcc = if ((TP + FP) * (TP + FN) * (TN + FP) * (TN + FN) > 0)
+      ((TP * TN) - (FP * FN)).toDouble / Math.sqrt(((TP + FP) * (TP + FN) * (TN + FP) * (TN + FN)).toDouble)
+    else 0.0
+
 
     // Output the results
+    println(s"TP: $TP")
+    println(s"TN: $TN")
+    println(s"FP: $FP")
+    println(s"FN: $FN")
+    println(s"Accuracy: $accuracy")
     println(s"Precision: $precision")
-    println(s"Recall: $recall")
+    println(s"Recall(sensitivity): $recall")
     println(s"F1 Score: $f1Score")
+    println(s"Specificity: $specificity")
+    println(s"Negative Predictive Value: $negativePredictiveValue")
+    println(s"False Positive Rate: $falsePositiveRate")
+    println(s"False Discovery Rate: $falseDiscoveryRate")
+    println(s"False Negative Rate: $falseNegativeRate")
+    println(s"Matthews Correlation Coefficient (MCC): $mcc")
 
     sc.stop()
-
   }
 }
