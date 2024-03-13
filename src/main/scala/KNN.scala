@@ -7,7 +7,6 @@ import scala.util.Random
 
 object KNN {
   def main(args: Array[String]): Unit = {
-    System.setProperty("hadoop.home.dir", "c:/winutils/")
     Logger.getLogger("org").setLevel(Level.OFF)
     Logger.getLogger("akka").setLevel(Level.OFF)
 
