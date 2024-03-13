@@ -15,7 +15,7 @@ object App {
     val conf = new SparkConf().setAppName("NameOfApp").setMaster("local[*]")
     val sc = new SparkContext(conf)
 
-    val data = sc.textFile("/Users/krishnanshugupta/Cal Poly/369_CSC/testspark/src/heart_2020_cleaned.csv")
+    val data = sc.textFile("src/heart_2020_cleaned.csv")
 
     val processData = data.flatMap { line =>
       val fields = line.split(",")
@@ -80,7 +80,7 @@ object App {
       }
     }
     val clean_data = processData.map(h => h.productIterator.mkString(", "))
-    clean_data.saveAsTextFile("/Users/krishnanshugupta/Cal Poly/369_CSC/testspark/src/test.txt")
+    clean_data.saveAsTextFile("src/output")
 
 
     val bmi = processData.map(_.bmi).collect()
@@ -142,7 +142,7 @@ object App {
       )
     )
     var layout = Layout(title = "Heart Disease Distribution")
-    Plotly.plot(traces = chart, layout = layout, path = "/Users/krishnanshugupta/Cal Poly/369_CSC/testspark/src/charts.html")
+    Plotly.plot(traces = chart, layout = layout, path = "src/charts.html")
 
     val spark = SparkSession.builder()
       .appName("YourAppName")
@@ -158,7 +158,7 @@ object App {
       Bar(Seq(column), Seq(correlation))
     }
     layout = Layout(title = "Correlation with Heart Disease")
-    Plotly.plot(traces = chartData, layout = layout, path = "/Users/krishnanshugupta/Cal Poly/369_CSC/testspark/src/charts.html")
+    Plotly.plot(traces = chartData, layout = layout, path = "src/charts2.html")
     spark.stop()
     sc.stop()
   }
