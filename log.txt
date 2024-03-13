@@ -9,4 +9,6 @@ Krishnanshu Gupta:
 - Presentation: 1 hour - Did all the slides for Motivation of Research, Dataset, Methodology, Data Parsing and Cleaning, and all 3 Data Exploration Slides. 
 
 Tahsin Amio:
-
+- Report: 1 hour - Wrote KNN and Logistic Regression Sections
+- Code: 4 hours - KNN (Data loading & preprocessing, Analyzation & Evaluation), Logistic Regression
+- Presentation: 30 mins - Slides for Logistic Regression and Results
