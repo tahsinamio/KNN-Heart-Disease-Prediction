@@ -1,7 +1,5 @@
 import org.apache.log4j.{Level, Logger}
-import org.apache.spark.sql.{Encoders, SparkSession}
 import org.apache.spark.{SparkConf, SparkContext}
-import org.apache.spark.mllib.linalg.Vectors
 
 import scala.io._
 import scala.util.Random
@@ -31,7 +29,7 @@ object KNN {
     val test = shuffledData.take(split_idx)
     val train = shuffledData.drop(split_idx)
 
-    // make k and test read-only and viewable to all the different rdds across dif machines
+    // make k and train read-only and viewable to all the different rdds across dif machines
     // broadcast is supposed to be used for small things, hopefully this isn't too big
     val k = 21 // temp value
     val k_val = sc.broadcast(k)
@@ -55,16 +53,15 @@ object KNN {
     val rlLabelnewLabel = entryCountList.map({case (entry, countList) => (entry(0), countList._1)})
     // get results
     val results = rlLabelnewLabel.map({
-      case (0.0, 0.0) => "TN"
-      case (1.0, 1.0) => "TP"
-      case (1.0, 0.0) => "FN"
-      case (0.0, 1.0) => "FP"
-    }).foreach(println)
+      case (0.0, 0.0) => ("TN", 1)
+      case (1.0, 1.0) => ("TP", 1)
+      case (1.0, 0.0) => ("FN", 1)
+      case (0.0, 1.0) => ("FP", 1)
+    })
 
     // map with totals
-    // WARNING DOES NOT WORK YET (OR IT TAKES A LONG TIME)
-    // get rid of the foreach(println) above before trying
-    //val analyse = results.groupBy(identity).mapValues(_.size).foreach(println)
+    // it takes a while but it works i think
+    val analyse = results.reduceByKey({ (x, y) => x + y}).collect().foreach(println)
     sc.stop()
 
   }
